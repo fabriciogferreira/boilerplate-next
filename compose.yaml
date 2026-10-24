@@ -1,0 +1,65 @@
+# Produção, dev, teste e lint no arquivo que o `docker compose` acha sem -f.
+# Fonte: https://docs.docker.com/guides/nextjs/
+# Prod e dev publicam a mesma porta 3000 no host: subir um de cada vez.
+# Teste e lint só entram com `--profile tools`. Motivo: DECISIONS.md
+
+services:
+  nextjs-prod-standalone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: boilerplate-next:prod
+    container_name: boilerplate-next-prod
+    ports:
+      - "3000:3000"
+
+  nextjs-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: boilerplate-next:dev
+    container_name: boilerplate-next-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - WATCHPACK_POLLING=true
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - node_modules/
+            - .next/
+        - action: rebuild
+          path: package.json
+
+  nextjs-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: boilerplate-next:dev
+    container_name: boilerplate-next-test
+    command:
+      [
+        "sh",
+        "-c",
+        "if [ -f package-lock.json ]; then npm run test:run 2>/dev/null || npm run test -- --run; elif [ -f yarn.lock ]; then yarn test:run 2>/dev/null || yarn test --run; elif [ -f pnpm-lock.yaml ]; then pnpm run test:run; else npm run test -- --run; fi",
+      ]
+    profiles:
+      - tools
+
+  nextjs-lint:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: boilerplate-next:dev
+    container_name: boilerplate-next-lint
+    command:
+      [
+        "sh",
+        "-c",
+        "if [ -f package-lock.json ]; then npm run lint; elif [ -f yarn.lock ]; then yarn lint; elif [ -f pnpm-lock.yaml ]; then pnpm lint; else npm run lint; fi",
+      ]
+    profiles:
+      - tools
