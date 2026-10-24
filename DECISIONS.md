@@ -54,19 +54,22 @@ Variante `slim`: é a da aba "Docker Official Image". A imagem final de produç�
 
 Escolha: um `compose.yaml` com produção, dev, teste e lint, como o compose final do guia (seção de testes).
 
-`docker compose` acha `compose.yaml` sem `-f`. O Laravel separa `compose.dev.yaml` e `compose.prod.yaml` porque o meta-repo sobe só o stack de desenvolvimento (`COMPOSE_FILE` no `project.conf`). Este repositório ainda não está ligado ao `project-setup`. Quando ligar, `COMPOSE_FILE` deve ser `compose.yaml` e o serviço do login deve ser só `nextjs-dev`.
+`docker compose` acha `compose.yaml` sem `-f`. O Laravel separa `compose.dev.yaml` e `compose.prod.yaml` porque o meta-repo sobe só o stack de desenvolvimento (`COMPOSE_FILE` no `project.conf`). Aqui continua um arquivo só. O `project.conf` do meta-repo aponta `COMPOSE_FILE=compose.yaml`.
+
+O `project-start` roda `docker compose up -d` sem nome de serviço. No guia, prod e dev sobem juntos e os dois publicam a porta 3000, então o login quebraria. Produção ficou no profile `prod`. O `up -d` sobe só `nextjs-dev`. Produção é `docker compose --profile prod up nextjs-prod-standalone`. Não separamos o arquivo como o Laravel: o guia usa um `compose.yaml`, e o profile resolve a porta sem um segundo compose.
 
 Nomes dos serviços continuam os do guia: `nextjs-prod-standalone`, `nextjs-dev`, `nextjs-test`, `nextjs-lint`. Assim os comandos do guia valem:
 
 ```console
 docker compose watch nextjs-dev
+docker compose --profile prod up nextjs-prod-standalone
 docker compose --profile tools run --rm nextjs-test
 docker compose --profile tools run --rm nextjs-lint
 ```
 
 Imagem e `container_name` usam `boilerplate-next` (`boilerplate-next:prod`, `boilerplate-next:dev`, `boilerplate-next-prod`, …). O guia chama a imagem de `nextjs-sample`, que é o sample, não este repo. O critério do nome é o mesmo do Laravel (`container_name: boilerplate-laravel-web`).
 
-Porta 3000 nos dois serviços longos, como o guia. Prod e dev juntos disputam a porta do host; sobe um de cada vez. Não mapeamos para 80: essa porta é a do Nginx do Laravel nesta VM, e o default do Next no guia é 3000.
+Porta 3000 nos dois serviços longos, como o guia. Não mapeamos para 80: essa porta é a do Nginx do Laravel nesta VM, e o default do Next no guia é 3000. Os dois não sobem juntos por causa do profile `prod`.
 
 Dev usa Compose Watch (`develop.watch`), não bind mount. O Laravel monta `./:/var/www`. O guia copia o código para a imagem e sincroniza mudanças, ignorando `node_modules/` e `.next/`, para o `node_modules` do container não misturar com o do host. Referência: https://docs.docker.com/compose/how-tos/file-watch/
 
@@ -104,10 +107,18 @@ Referência: https://docs.docker.com/reference/dockerfile/#dockerignore-file
 
 O `Dockerfile` standalone do guia não usa `--mount=type=cache,target=/app/.next/cache` no `npm run build`. O comentário do próprio guia diz que esse mount acelera o rebuild e impede `.next/cache/fetch-cache` de ir para a imagem final. O `COPY` de `.next/cache` para o runner também fica comentado, como no guia. O Dockerfile de export do guia usa o mount; não seguimos esse arquivo porque a escolha foi standalone.
 
+## Definição no meta-repo
+
+O `project-setup.sh` não tem lista de projetos. `workvm_list_project_ids` acha cada `project.conf` na raiz (`lib/git.sh`). A definição ficou em `boilerplate-next/` no meta-repo, no mesmo desenho do Laravel e do use-url-query: `project.conf` + `workspace.code-workspace`. O clone continua em `boilerplate-next/boilerplate-next/` e fica de fora do git pelo `.gitignore` (`boilerplate-next/*`, com exceção dos arquivos da definição).
+
+Não há `post-clone.sh`. O Laravel precisa dele para `.env`, UID do volume e `compose.dev.yaml` (`lib/laravel-post-clone.sh`). Este boilerplate não tem esse passo, e o guia Docker também não pede. `POST_CLONE=()` deixa o setup seguir sem pós-clone.
+
+`WAIT_URL=http://localhost:3000` está no conf. O `project-start` só espera essa URL se o `docker compose up -d` passar. Sem lockfile o build falha, o login avisa e continua. `CHROMIUM_URLS` abre essa mesma URL na instalação (`WORKVM_OPEN_APPS=1`). Sem MCP: o `project.conf` não declara `MCP=`.
+
 ## O que não entrou
 
 - App Next, `package.json`, lockfile. Sem isso o `docker build` falha no estágio de dependências, de propósito.
 - `nginx.conf`, porta 8080, `output: "export"`.
 - Vitest, ESLint, `vitest.config.ts`, `vitest.setup.ts`.
-- Definição no meta-repo (`project.conf`, workspace, post-clone).
+- `post-clone.sh` e `config-vm.xml`.
 - Sample do guia e login no registry `dhi.io`.

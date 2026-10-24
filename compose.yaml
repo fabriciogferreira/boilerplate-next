@@ -1,6 +1,7 @@
 # Produção, dev, teste e lint no arquivo que o `docker compose` acha sem -f.
 # Fonte: https://docs.docker.com/guides/nextjs/
-# Prod e dev publicam a mesma porta 3000 no host: subir um de cada vez.
+# O login da WorkVM faz `docker compose up -d` neste arquivo e sobe só
+# nextjs-dev. Produção está no profile `prod` (mesma porta 3000).
 # Teste e lint só entram com `--profile tools`. Motivo: DECISIONS.md
 
 services:
@@ -12,6 +13,8 @@ services:
     container_name: boilerplate-next-prod
     ports:
       - "3000:3000"
+    profiles:
+      - prod
 
   nextjs-dev:
     build:
