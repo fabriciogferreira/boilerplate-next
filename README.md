@@ -1,6 +1,6 @@
 # boilerplate-next
 
-Container no padrão do guia da Docker para Next.js, com `output: "standalone"`. O app ainda não foi criado; estes arquivos são o contrato da imagem. Cada escolha está em [DECISIONS.md](DECISIONS.md).
+Container no padrão do guia da Docker para Next.js, com `output: "standalone"`. O app está na raiz (`src/app`). Cada escolha está em [DECISIONS.md](DECISIONS.md).
 
 | Arquivo | Função |
 | --- | --- |
