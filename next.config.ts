@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import "./src/env";
 
 // Standalone: o Dockerfile de produção copia .next/standalone.
 // Não trocar para "export" sem rever DECISIONS.md.
