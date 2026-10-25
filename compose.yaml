@@ -26,16 +26,20 @@ services:
       - "3000:3000"
     environment:
       - WATCHPACK_POLLING=true
-    develop:
-      watch:
-        - action: sync
-          path: .
-          target: /app
-          ignore:
-            - node_modules/
-            - .next/
-        - action: rebuild
-          path: package.json
+    # npm install dentro do container grava package.json e o lockfile no clone.
+    # node_modules e .next ficam em volume para não ir para o host.
+    # O volume nasce como root; o Next roda como node e não cria .next/dev.
+    user: "0:0"
+    command:
+      [
+        "sh",
+        "-c",
+        "mkdir -p /app/node_modules /app/.next && chown node:node /app/node_modules /app/.next && su node -s /bin/sh -c 'if [ -f package-lock.json ]; then npm run dev; elif [ -f yarn.lock ]; then yarn dev; elif [ -f pnpm-lock.yaml ]; then pnpm dev; else npm run dev; fi'",
+      ]
+    volumes:
+      - .:/app
+      - dev_node_modules:/app/node_modules
+      - dev_next:/app/.next
 
   nextjs-test:
     build:
@@ -66,3 +70,7 @@ services:
       ]
     profiles:
       - tools
+
+volumes:
+  dev_node_modules:
+  dev_next:

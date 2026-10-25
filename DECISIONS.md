@@ -71,9 +71,9 @@ Imagem e `container_name` usam `boilerplate-next` (`boilerplate-next:prod`, `boi
 
 Porta 3000 nos dois serviços longos, como o guia. Não mapeamos para 80: essa porta é a do Nginx do Laravel nesta VM, e o default do Next no guia é 3000. Os dois não sobem juntos por causa do profile `prod`.
 
-Dev usa Compose Watch (`develop.watch`), não bind mount. O Laravel monta `./:/var/www`. O guia copia o código para a imagem e sincroniza mudanças, ignorando `node_modules/` e `.next/`, para o `node_modules` do container não misturar com o do host. Referência: https://docs.docker.com/compose/how-tos/file-watch/
+Dev monta `.:/app`. O guia usa Compose Watch (`develop.watch`), que só copia do host para o container. Um `npm install` dentro do `boilerplate-next-dev` gravava na camada do container e o git do clone não via `package.json` nem o lockfile. O bind mount faz essa escrita aparecer na pasta do projeto. `node_modules` e `.next` ficam nos volumes `dev_node_modules` e `dev_next`, para não misturar com o host. Referência do watch que deixamos: https://docs.docker.com/compose/how-tos/file-watch/
 
-O processo é o usuário `node` (uid 1000) que a imagem oficial cria. O Laravel passa `UID`/`GID` como build-arg porque o bind mount grava arquivo com o uid do host. Aqui não há esse arg. Se o dev passar a bind mount, o arg de UID entra nessa hora, no modelo do `docker/common/php-fpm/Dockerfile` do Laravel.
+O processo continua o usuário `node` (uid 1000) da imagem oficial. Nesta VM o usuário do host também é 1000, então o arquivo criado no mount fica com ele. O arg `UID`/`GID` do Laravel não entrou. O volume nomeado nasce como root: o serviço sobe como root só para `chown` de `/app/node_modules` e `/app/.next`, e o `next dev` segue com `su node`.
 
 `WATCHPACK_POLLING=true` está no `Dockerfile.dev` e no serviço `nextjs-dev`. O guia coloca os dois: dentro do Docker o watcher do Next não vê evento de arquivo sem polling.
 
