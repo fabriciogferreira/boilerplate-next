@@ -1,0 +1,26 @@
+---
+description: Before a new utility type, search type-fest and reuse the export
+alwaysApply: true
+---
+
+# type-fest before a new type
+
+`type-fest` is a dependency. Before declaring a type that transforms, narrows, brands, or reshapes another type, search the installed package for that name.
+
+`node_modules` lives in the container volume, so search there:
+
+```bash
+docker exec -u 1000:1000 boilerplate-next-dev grep -n "Except" node_modules/type-fest/index.d.ts node_modules/type-fest/readme.md
+```
+
+Replace `Except` with the type you were about to write. The index exports it as `export type {Except}`. Also check "Alternative type names" in the readme (`Prettify` is `Simplify`, `MaybePromise` is `Promisable`).
+
+If it exists, import it. Do not copy the definition.
+
+```ts
+import type { Except } from "type-fest"
+
+type FooWithoutRainbow = Except<Foo, "rainbow">
+```
+
+A product type (`User`, `Invoice`) stays in the app. Built-in utilities (`Partial`, `Pick`, `Omit`, `Awaited`, `Record`) stay built-in. Names type-fest declined (`Dictionary`, `Nullish`, `Diff`) stay declined; use the alternative documented under "Declined types".
