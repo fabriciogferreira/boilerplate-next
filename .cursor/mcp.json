@@ -1,0 +1,65 @@
+{
+  "mcpServers": {
+    "shadcn": {
+      "command": "docker",
+      "args": [
+        "container",
+        "exec",
+        "-i",
+        "-u",
+        "1000",
+        "boileplate-next-dev",
+        "npx",
+        "shadcn@latest",
+        "mcp"
+      ]
+    },
+    "inkeepMcp": {
+      "url": "https://mcp.inkeep.com/zod/mcp"
+    },
+    "next-devtools": {
+      "command": "docker",
+      "args": [
+        "container",
+        "exec",
+        "-i",
+        "-u",
+        "1000",
+        "boileplate-next-dev",
+        "npx",
+        "-y",
+        "next-devtools-mcp@latest"
+      ]
+    },
+    "playwright": {
+      "command": "docker",
+      "args": [
+        "container",
+        "exec",
+        "-i",
+        "-u",
+        "1000",
+        "boileplate-next-dev",
+        "npx",
+        "-y",
+        "@playwright/mcp@latest"
+      ]
+    },
+    "flowbite": {
+      "command": "docker",
+      "args": [
+        "container",
+        "exec",
+        "-i",
+        "-u",
+        "1000",
+        "-e",
+        "FIGMA_ACCESS_TOKEN",
+        "boileplate-next-dev",
+        "npx",
+        "-y",
+        "flowbite-mcp"
+      ]
+    }
+  }
+}

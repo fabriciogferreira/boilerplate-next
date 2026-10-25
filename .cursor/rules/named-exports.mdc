@@ -1,0 +1,22 @@
+---
+description: Prefer named exports; ban default exports except Next.js route entries
+alwaysApply: true
+---
+
+# Named exports only
+
+Export with named exports (`export function`, `export const`, `export type`). Do not use `export default`.
+
+Importers must use the real export name:
+
+```typescript
+// ❌ BAD
+export default function PromptEditForm() {}
+import Form from "./prompts"
+
+// ✅ GOOD
+export function PromptEditForm() {}
+import { PromptEditForm } from "./prompts"
+```
+
+Exception: Next.js App Router files that require default export — `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `template.tsx`, `default.tsx`. Co-located helpers and components in those files still use named exports.

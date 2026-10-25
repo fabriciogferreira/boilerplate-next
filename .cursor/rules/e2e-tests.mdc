@@ -1,0 +1,45 @@
+---
+description: E2E test strategy and conventions (behavior > UI)
+globs: tests/e2e/**/*
+alwaysApply: false
+---
+
+# E2E Tests
+
+Read and follow [`tests/e2e/STRATEGY.md`](../../tests/e2e/STRATEGY.md) before creating or changing specs.
+
+## Priority
+
+```text
+1. Functional behavior
+2. Dependent behaviors
+3. Authentication and authorization
+4. Persistence
+5. Flows and redirects
+6. Validations
+7. Visual feedback
+```
+
+Do not approve a flow just because there is a toast, a filled form, or a URL change. Prove that the state changed and that the user can use what the operation unlocks.
+
+## Structure
+
+`tests/e2e/{domain}/{method}/{behavior}.spec.ts`
+
+Helpers in `tests/e2e/helpers/`.
+
+## Anti-patterns
+
+```ts
+// ❌ UI / feedback only
+await expect(page.getByText("Account created")).toBeVisible()
+await expect(page).toHaveURL(/\/signin$/)
+
+// ✅ Operation + persistence + later use
+await signup(page, user)
+await signin(page, user)
+await expect(page).toHaveURL(/\/projects$/)
+await expect(/* authenticated area usable */).toBeVisible()
+```
+
+Sign Up in this product creates the account and goes to `/signin`; the authenticated session comes from Sign In. The main spec must cover Sign Up → Sign In → authenticated route.

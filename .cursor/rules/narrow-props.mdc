@@ -1,0 +1,87 @@
+---
+description: Narrow prop types; parents compose child Props instead of duplicating
+alwaysApply: true
+---
+
+# Narrow types — only what is used
+
+Components, pages, hooks params, and helpers must type **only the fields they read or write**. Do not pass the full entity type when a subset is enough.
+
+Prefer `Pick<Entity, "field" | ...>` (or an equivalent object with `Entity["field"]` types) so field types stay tied to the schema.
+
+```tsx
+// ❌ BAD — forces every Project field even if unused
+type ProjectLinkProps = {
+	project: Project
+}
+
+export function ProjectLink(props: ProjectLinkProps) {
+	return <Link href={`/projects/${props.project.id}`}>{props.project.name}</Link>
+}
+
+// ✅ GOOD — only id and name
+type ProjectLinkProps = {
+	project: Pick<Project, "id" | "name">
+}
+
+export function ProjectLink(props: ProjectLinkProps) {
+	return <Link href={`/projects/${props.project.id}`}>{props.project.name}</Link>
+}
+```
+
+```tsx
+// ❌ BAD
+type OnDropArgs = {
+	project: Project
+}
+
+// ✅ GOOD
+type OnDropArgs = {
+	id: Project["id"]
+}
+```
+
+When the consumer needs more fields later, widen the `Pick` (or args) at that call site — do not type unused fields “just in case”.
+
+# Parent props compose child props
+
+Export each component’s `{ComponentName}Props` type. A parent must **import** the child’s props type and build its own with `Pick` / `Omit` / intersection — never redeclare the same fields the child already typed.
+
+```tsx
+// project-link.tsx
+export type ProjectLinkProps = {
+	project: Pick<Project, "id" | "name">
+}
+
+export function ProjectLink(props: ProjectLinkProps) {
+	return <Link href={`/projects/${props.project.id}`}>{props.project.name}</Link>
+}
+
+// projects-list.tsx
+import { ProjectLink, type ProjectLinkProps } from "./project-link"
+
+// ❌ BAD — duplicates the child’s shape
+type ProjectsListProps = {
+	projects: { id: number; name: string }[]
+	onDrop: (id: number) => void
+}
+
+// ✅ GOOD — reuses the child’s props type
+type ProjectsListProps = {
+	projects: ProjectLinkProps["project"][]
+	onDrop: (id: ProjectLinkProps["project"]["id"]) => void
+}
+
+// ✅ GOOD — parent forwards a slice of child props
+type ProjectRowProps = ProjectLinkProps & {
+	onDrop: (id: ProjectLinkProps["project"]["id"]) => void
+}
+```
+
+When the child props change, parents that compose them stay in sync without parallel edits.
+
+# Page config slices
+
+`WithValidConfig` requires a Zod `schema` and validates **only that slice** of `user.config`. Pass a schema with the keys the page uses — not the full `configSchema` — so unrelated invalid keys do not block the page.
+
+On save, PUT only the keys this page updates and merge them into local `user.config` on success.

@@ -1,0 +1,30 @@
+---
+description: Prefer padding (and gap) over margin to avoid margin collapse surprises
+alwaysApply: false
+globs: "**/*.{tsx,ts,css}"
+---
+
+# Prefer padding over margin
+
+Avoid `margin` / Tailwind `m-*`, `mx-*`, `my-*`, `mt-*`, `mb-*`, `ml-*`, `mr-*` for layout spacing. Prefer **`padding`** (`p-*`, `px-*`, `py-*`, …) and, in flex/grid, **`gap`**.
+
+Vertical margins collapse in surprising ways (siblings, parent/child, same-direction). Padding does not. Details: [The Rules of Margin Collapse](https://www.joshwcomeau.com/css/rules-of-margin-collapse/) (Josh Comeau).
+
+```tsx
+// ❌ BAD — margins collapse between siblings / into parents
+<div className="mt-4 mb-4">…</div>
+<p className="my-6">…</p>
+
+// ✅ GOOD — padding on the container (or gap in flex/grid)
+<section className="flex flex-col gap-4 p-4">…</section>
+<div className="px-4 py-2">…</div>
+```
+
+Exceptions (rare):
+
+- Flex/grid utilities that are not “spacing between blocks”: `mx-auto`, `ml-auto` / `ms-auto`, `mt-auto`, etc.
+- Negative pull hacks (`-ms-1`) and absolute offsets better expressed with `left`/`top`/`calc`
+- shadcn/`components/ui` primitives (separators, carousel defaults) unless a local override is clearly safer
+- Domain fields named `*_margin` (unrelated to CSS)
+
+Prefer fixing structure / using `gap` before adding margin.

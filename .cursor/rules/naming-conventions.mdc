@@ -1,0 +1,124 @@
+---
+description: TypeScript / Next.js / React naming convention
+alwaysApply: true
+---
+
+# Naming
+
+No Hungarian notation (`t`, `I`, `arr`). TypeScript already distinguishes types from values.
+
+## Values and types
+
+| Form | Use | Example |
+| --- | --- | --- |
+| `CONSTANT_EXAMPLE` | immutable constant / enum-object value | `TOKEN_MAX_AGE`, `modelEnum.ARTIFACT` |
+| `is` / `can` / `has` / `should` + Pascal | boolean | `isPending`, `canUpgrade`, `hasToken` |
+| `examples` (plural) | array / list | `plans`, `billings` |
+| `example` | singular value (object, string, number, …) | `subscription`, `token` |
+| `examplesObject` / `exampleById` | map / record | `SEGMENT_KEYS`, `storesById` |
+| `ExamplesUnion` | union type | `BillingMethod` (via `z.infer`) |
+| `exampleEnum` + `EXAMPLE` keys | `as const` enum-object | `billingMethodEnum.PIX` |
+| `Example` | inferred entity type | `type Plan = z.infer<typeof planSchema>` |
+| `ExampleProps` | component props (always export) | `FeedbackListProps` |
+| `ExamplePageParams` | route params (`useParams`) | `ProjectDiagramPageParams` |
+
+Do not use: `ExampleInterface`, `ExampleType` as a mandatory suffix, nor `IExample` / `tExample`.
+
+## React / Next
+
+| Form | Use | Example |
+| --- | --- | --- |
+| `ExampleThing` | component (named export) | `LandingPlansSection` |
+| `ExampleProvider` | provider | `AuthUserProvider` |
+| `ExampleContext` | context | `AuthUserContext` |
+| `useExample` | generic hook | `useAuthUser`, `useLocalStorage` |
+| `ExamplePage` | comments/docs only — the file is `page.tsx` with `export default` | — |
+| `ExampleLayout` | docs only — the file is `layout.tsx` | — |
+| `onExample` | callback prop | `onCreated`, `onUpgraded` |
+| `handleExample` | local handler | `handleSave`, `onSubmit` |
+| `exampleRef` | ref | `formRef` |
+
+Files and folders: **kebab-case** (`use-list-plans.ts`, `payment-details.tsx`).  
+Exports: named only (except `page.tsx` / `layout.tsx` / … in the App Router).
+
+## Schemas and API (Zod)
+
+| Form | Use | Example |
+| --- | --- | --- |
+| `exampleSchema` | base entity | `planSchema` |
+| `exampleNewSchema` | create body | `billingNewSchema` |
+| `exampleEditSchema` | update body | `projectEditSchema` |
+| `exampleListDataSchema` | list envelope | `planListDataSchema` |
+| `exampleShowDataSchema` | show envelope | `subscriptionShowDataSchema` |
+| `example*BodySchema` | named request body | `signInBodySchema` |
+| `example*DataSchema` | response data | `signInDataSchema` |
+
+Entity type: `type Example = z.infer<typeof exampleSchema>` — do not duplicate fields in an `interface`.
+
+## Request hooks
+
+| Form | Use | Example |
+| --- | --- | --- |
+| `useListExamples` | GET collection | `useListPlans` |
+| `useShowExample` | GET one | `useShowSubscription` |
+| `useNewExample` | POST create | `useNewBilling` |
+| `useEditExample` | PUT/PATCH | `useEditProject` |
+| `useDropExample` | DELETE | `useDropProject` |
+| domain verb | business action | `useUpgradeSubscription` |
+
+File: `src/hooks/request/{entity}/queries|mutations/use-{action}-{entity}.ts`.  
+`queryKey` / `mutationKey`: `'{entity}.{action}'` (register it in `tan-stack-react-query.d.ts`).
+
+## Stores
+
+| Form | Use |
+| --- | --- |
+| `useExampleStore` | client store (Zustand/etc.), if one exists |
+
+Prefer React Query for server state; use a store only for UI/client state.
+
+## Events and handlers (extra)
+
+| Form | Use |
+| --- | --- |
+| `onExample` | event prop coming from the parent |
+| `handleExample` | implementation in the component |
+| `withExample` | HOC / wrapper |
+| `getExample` / `setExample` | pure getter/setter |
+| `formatExample` / `parseExample` | pure transformation |
+| `toExample` / `fromExample` | representation conversion |
+
+## i18n and env (extra)
+
+| Form | Use |
+| --- | --- |
+| `pages.example.*` / `nav.example` | static i18n key |
+| `*_dynamic.${key}` | dynamic i18n key |
+| `NEXT_PUBLIC_*` | client env |
+| `E2E_*` | E2E test only env |
+
+## E2E tests (extra)
+
+| Form | Use |
+| --- | --- |
+| `tests/e2e/{domain}/{method}/{behavior}.spec.ts` | spec |
+| `uniqueEmail` / `buildTestUser` | fixture factory |
+| `gotoExample` / `fillExampleForm` | page helper |
+
+## Anti-patterns
+
+```ts
+// ❌
+tProjectProps
+IUser
+ProjectInterface
+useProjectQuery   // prefer useShowProject / useListProjects
+arrPlans
+
+// ✅
+ProjectLinkProps
+User
+type Project = z.infer<typeof projectSchema>
+useShowProject
+plans
+```

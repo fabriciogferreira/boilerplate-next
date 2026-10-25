@@ -1,0 +1,30 @@
+---
+description: exactOptionalPropertyTypes — optional props are absent or typed; undefined only if declared
+alwaysApply: false
+globs: "**/*.{ts,tsx}"
+---
+
+# Exact optional property types
+
+`tsconfig.json` has `"exactOptionalPropertyTypes": true`.
+
+For `prop?: T`, TypeScript allows **omitting** the key or assigning `T`. It does **not** allow `prop: undefined` unless the type includes `undefined` (`prop?: T | undefined`).
+
+Docs: [Exact Optional Property Types](https://www.typescriptlang.org/tsconfig/#exactOptionalPropertyTypes)
+
+```ts
+type Theme = {
+	colorThemeOverride?: "dark" | "light"
+}
+
+const ok: Theme = { colorThemeOverride: "dark" }
+const alsoOk: Theme = {}
+// ❌ const bad: Theme = { colorThemeOverride: undefined }
+
+type ThemeExplicit = {
+	colorThemeOverride?: "dark" | "light" | undefined
+}
+const withUndefined: ThemeExplicit = { colorThemeOverride: undefined } // ✅
+```
+
+When spreading or assigning partials, omit the key (`delete` / conditional spread) instead of setting `undefined`, unless `| undefined` is intentional in the type.

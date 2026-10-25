@@ -1,0 +1,105 @@
+---
+description: Dynamic translations convention (_dynamic suffix) for i18n FormatJS/React Intl
+globs: "**/i18n/**/*.{ts,tsx,json,md}"
+alwaysApply: false
+---
+
+# Dynamic translations
+
+Internationalization convention (FormatJS / React Intl) shared between Next.js/React and React Native.
+
+## Definitions
+
+| Type | What it is | Key example |
+| --- | --- | --- |
+| **Static** | Key known at code-writing time | `titles.tasks` |
+| **With parameters** | Same static key; the message receives ICU values (`{name}`, plural, date, number) | `welcome` → `"Hello, {name}!"` |
+| **Dynamic** | The **key** is assembled at runtime from a variable value | `` `titles_dynamic.${type}` `` |
+
+Message parameter ≠ dynamic translation. `{name}` in ICU MessageFormat **does not** justify the `_dynamic` suffix.
+
+## Rules
+
+1. The `_dynamic` suffix identifies **groups** of translations whose full key is determined at runtime.
+2. Do not use `_dynamic` just because the message has parameters, pluralization, dates, numbers, or other ICU features.
+3. If the key can be known statically, use conventional translation (without `_dynamic`).
+4. Whenever possible, type the values used to assemble the key in TypeScript (union / enum / `as const`) so the available keys are validated.
+5. The same convention applies to Next.js/React and React Native — group names and keys aligned across platforms.
+6. Do not propose another convention in place of `_dynamic` without first explaining the reason and the impact of the change.
+
+## Examples
+
+### Correct — static key
+
+```json
+{
+  "titles": {
+    "tasks": "Tasks"
+  }
+}
+```
+
+```ts
+intl.formatMessage({ id: "titles.tasks" })
+```
+
+### Correct — ICU parameters (still static)
+
+```json
+{
+  "welcome": "Hello, {name}!"
+}
+```
+
+```ts
+intl.formatMessage({ id: "welcome" }, { name: user.name })
+```
+
+Do not rename it to `welcome_dynamic`.
+
+### Correct — dynamic translation
+
+```json
+{
+  "titles_dynamic": {
+    "task": "Task",
+    "project": "Project"
+  }
+}
+```
+
+```ts
+type EntityType = "task" | "project"
+
+function entityTitle(type: EntityType) {
+  return intl.formatMessage({ id: `titles_dynamic.${type}` })
+}
+```
+
+### Incorrect — `_dynamic` because it has a parameter
+
+```json
+{
+  "welcome_dynamic": "Hello, {name}!"
+}
+```
+
+Use `welcome` (static + parameters).
+
+### Incorrect — dynamic without typing the discriminant
+
+```ts
+function entityTitle(type: string) {
+  return intl.formatMessage({ id: `titles_dynamic.${type}` })
+}
+```
+
+Restrict `type` to the keys that exist in `titles_dynamic`.
+
+### Incorrect — known static key forced to be dynamic
+
+```ts
+intl.formatMessage({ id: `titles.${"tasks"}` })
+```
+
+Use `titles.tasks` directly.
