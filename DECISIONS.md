@@ -115,6 +115,16 @@ Não há `post-clone.sh`. O Laravel precisa dele para `.env`, UID do volume e `c
 
 `WAIT_URL=http://localhost:3000` está no conf. O `project-start` só espera essa URL se o `docker compose up -d` passar. Sem lockfile o build falha, o login avisa e continua. `CHROMIUM_URLS` abre essa mesma URL na instalação (`WORKVM_OPEN_APPS=1`). Sem MCP: o `project.conf` não declara `MCP=`.
 
+## Mutation testing (StrykerJS)
+
+Vitest cobre o feedback unitário; não injeta mutantes. O mesmo gap apareceu no `use-url-query` (lib Blocked no funil até existir runner). Aqui o boilerplate já traz o runner:
+
+- `@stryker-mutator/core` + `@stryker-mutator/vitest-runner`
+- `stryker.config.json` (mutates `src/**/*.{ts,tsx}`, exclui testes; threshold break 100)
+- `npm run test:mutate` (scoped: `npx stryker run --mutate 'src/lib/utils.ts'`)
+
+HTML em `reports/mutation/` (gitignored). Precisa de Node real (não Bun-as-node).
+
 ## O que não entrou
 
 - App Next, `package.json`, lockfile. Sem isso o `docker build` falha no estágio de dependências, de propósito.
