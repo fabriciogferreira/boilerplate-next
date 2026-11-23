@@ -1,0 +1,42 @@
+---
+description: Each UI component ships its own Skeleton — do not reuse a generic block for loading
+alwaysApply: true
+---
+
+# Component skeletons
+
+Every user-facing component that can load asynchronously has **its own** skeleton that mirrors that component’s layout (size, hierarchy, gaps). Do not show a single generic spinner or a shared “page skeleton” in place of a specific component’s loading state.
+
+## Naming and placement
+
+- Name: `{ComponentName}Skeleton` (e.g. `GoalsProgress` → `GoalsProgressSkeleton`).
+- Co-locate with the component (same file or adjacent `*-skeleton.tsx` in the same folder) and **named-export** it.
+- Build the shape with the base shadcn `Skeleton` in `components/ui/skeleton.tsx` (add with `npx shadcn@latest add skeleton` if the file is missing). Compose several `Skeleton` blocks to match the real UI — do not invent a second primitive.
+
+```tsx
+// ❌ BAD — one generic block for every section
+{isPending ? <Skeleton className="h-24 w-full" /> : <GoalsProgress />}
+
+// ✅ GOOD — dedicated skeleton that matches GoalsProgress
+export function GoalsProgressSkeleton() {
+	return (
+		<section className="flex flex-col gap-3" aria-hidden>
+			<Skeleton className="h-4 w-24" />
+			<Skeleton className="h-1.5 w-full max-w-md" />
+			<Skeleton className="ms-4 h-1.5 w-full max-w-sm" />
+		</section>
+	)
+}
+
+{isPending ? <GoalsProgressSkeleton /> : <GoalsProgress />}
+```
+
+## When it applies
+
+- List rows, cards, calendars, progress panels, forms sections, and any other visible unit that waits on data.
+- Parents that compose children use each child’s skeleton (or a parent skeleton that embeds those child skeletons) — do not flatten everything into one grey box.
+
+## Exceptions
+
+- Pure presentational pieces that never load data and have no async boundary.
+- Next.js `loading.tsx` route fallbacks may stay coarse, but in-page components still use their own skeletons once the page shell is up.
